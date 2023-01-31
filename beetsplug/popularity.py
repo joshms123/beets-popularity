@@ -10,11 +10,11 @@ import time
 
 class Popularity(BeetsPlugin):
     apirequests = 0
+    item_types = {'popularity': types.INTEGER}
     
 # inital functions
     def __init__(self):
         super(Popularity, self).__init__()
-        self.item_types = {'popularity': types.INTEGER}
         self.register_listener('write', self._on_write)
         self.API_URL = 'https://api.deezer.com/search'
         #self.API_URL = 'https://api.spotify.com/v1/search'

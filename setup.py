@@ -13,7 +13,7 @@ except (IOError, ImportError):
 
 setup(
     name='beets-popularity',
-    version='1.0.2',
+    version='1.0.3',
     description="Beets plugin to fetch and store popularity values as flexible item attributes",
     long_description=long_description,
     url='https://github.com/abba23/beets-popularity',
