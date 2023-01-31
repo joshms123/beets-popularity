@@ -99,7 +99,7 @@ class Popularity(BeetsPlugin):
 
                 # store the popularity value as a flexible attribute
                 if not nowrite:
-                    item.popularity = popularity
+                    item.popularity = int(popularity)
                     item.store()
 
         except requests.exceptions.HTTPError:
