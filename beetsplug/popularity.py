@@ -129,6 +129,7 @@ class Popularity(BeetsPlugin):
         return popularity_found
     
     def _set_popularity(self, item, nowrite):
+        if hasattr(item, "popularity"): return
         # replacing specific minus from musicbrainz with that it can't find anything from the API (compare: http://unicode.scarfboy.com/?s=%E2%80%90 and  http://unicode.scarfboy.com/?s=-)
         # example: "blink‐182" will be "blink-182"
         replacechar = u'\u2010'
