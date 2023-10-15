@@ -60,10 +60,7 @@ class Popularity(BeetsPlugin):
 	def _has_brackets(self, string):
 		# replace true if string contains brackets
 		brackets = ["(", ")", "[", "]"]
-		has_brackets = False
-		if any(bracket in string for bracket in brackets):
-			has_brackets = True
-		return has_brackets
+		return any((bracket in string for bracket in brackets))
 	
 # request functions
 	def _try_api_request(self, item, nowrite, query):
@@ -71,27 +68,20 @@ class Popularity(BeetsPlugin):
 		popularity_found=False
 		#payload = {'q': query, 'type': 'track', 'limit': '1'}
 		response = requests.get(self.API_URL, params=payload)
-		
+
 		# sleep for 3 seconds if 50 api requests were executed due to deezers api limit that says: "limited to 50 requests / 5 seconds"
 		if self.apirequests == 50:
 			self.apirequests = 0
 			time.sleep(2)
 		self.apirequests += 1
-		
+
 		try:
 			# raise an exception for bad response status codes
 			response.raise_for_status()
 
 			# load response as json
 			response_json = json.loads(response.text)
-			tracks = response_json["data"]
-			#tracks = response_json["tracks"]["items"]
-
-			# raise an exception if the query returned no tracks
-			if not tracks:
-				popularity_found = False
-				raise EmptyResponseError()
-			else:
+			if tracks := response_json["data"]:
 				popularity_found = True
 				popularity = round(tracks[0]["rank"] / 10000)
 				#popularity = tracks[0]["popularity"]
@@ -103,6 +93,9 @@ class Popularity(BeetsPlugin):
 					item.popularity = int(popularity)
 					item.store()
 
+			else:
+				popularity_found = False
+				raise EmptyResponseError()
 		except requests.exceptions.HTTPError:
 			self._log.warning(u'Bad status code in API response')
 		except EmptyResponseError:
@@ -113,19 +106,19 @@ class Popularity(BeetsPlugin):
 	def _api_requests(self, item, nowrite, artiststr, albumstr, titlestr):
 		popularity_found = False
 		# search with explicit tag statement and with album
-		query = 'artist:"' + artiststr + '" album:"' + albumstr + '" track:"' + titlestr + '"'
+		query = f'artist:"{artiststr}" album:"{albumstr}" track:"{titlestr}"'
 		popularity_found = self._try_api_request(item, nowrite, query)
 		if not popularity_found:
 			# search without explicit tag statement and with album
-			query = '"' + artiststr + ' - ' + albumstr + ' - ' + titlestr + '"'
+			query = f'"{artiststr} - {albumstr} - {titlestr}"'
 			popularity_found = self._try_api_request(item, nowrite, query)
 		if not popularity_found:
 			# search with explicit tag statement and without album
-			query = 'artist:"' + artiststr + '" track:"' + titlestr + '"'
+			query = f'artist:"{artiststr}" track:"{titlestr}"'
 			popularity_found = self._try_api_request(item, nowrite, query)
 		if not popularity_found:
 			# search without explicit tag statement and without album
-			query = '"' + artiststr + ' - ' + titlestr + '"'
+			query = f'"{artiststr} - {titlestr}"'
 			popularity_found = self._try_api_request(item, nowrite, query)
 		return popularity_found
 	
